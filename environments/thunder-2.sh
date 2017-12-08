@@ -6,7 +6,6 @@ function drupal_ti_install_drupal() {
     composer create-project burdamagazinorg/thunder-project . --stability dev --no-interaction --no-install
 	composer install
     cd docroot
-    pwd
 	php -d sendmail_path=$(which true) ~/.composer/vendor/bin/drush.php --yes -v site-install "$DRUPAL_TI_INSTALL_PROFILE" --db-url="$DRUPAL_TI_DB_URL" thunder_module_configure_form.install_modules_thunder_demo
 	drush use $(pwd)#default
 }
