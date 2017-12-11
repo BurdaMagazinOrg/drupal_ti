@@ -53,7 +53,7 @@ function drupal_ti_run_server() {
 		{ "$GOPATH/bin/hhvm-serve" -listen="$DRUPAL_TI_WEBSERVER_HOST:$DRUPAL_TI_WEBSERVER_PORT" 2>&1 | drupal_ti_log_output "webserver" ; } &
 	else
 		# start a web server on port 8080, run in the background; wait for initialization
-		{ drush runserver "$DRUPAL_TI_WEBSERVER_URL:$DRUPAL_TI_WEBSERVER_PORT" } &
+		drush runserver "$DRUPAL_TI_WEBSERVER_URL:$DRUPAL_TI_WEBSERVER_PORT" &
 	fi
 
 	# Wait until drush server has been started.
