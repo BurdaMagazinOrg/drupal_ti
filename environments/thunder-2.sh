@@ -34,6 +34,33 @@ function drupal_ti_ensure_module_linked() {
 	composer require drupal/$DRUPAL_TI_MODULE_NAME *@dev
 }
 
+#
+# Run a webserver and wait until it is started up.
+#
+function drupal_ti_run_server() {
+	# This function is re-entrant.
+	if [ -r "$TRAVIS_BUILD_DIR/../drupal_ti-drush-server-running" ]
+	then
+		return
+	fi
+
+	# Use hhvm_serve for PHP 5.3 fcgi and hhvm fcgi
+	PHP_VERSION=$(phpenv version-name)
+	if [ "$PHP_VERSION" = "5.3" -o "$PHP_VERSION" = "hhvm" ]
+	then
+		export GOPATH="$DRUPAL_TI_DIST_DIR/go"
+		export DRUPAL_TI_WEBSERVER_HOST=$(echo "$DRUPAL_TI_WEBSERVER_URL" | sed 's,http://,,')
+		{ "$GOPATH/bin/hhvm-serve" -listen="$DRUPAL_TI_WEBSERVER_HOST:$DRUPAL_TI_WEBSERVER_PORT" 2>&1 | drupal_ti_log_output "webserver" ; } &
+	else
+		# start a web server on port 8080, run in the background; wait for initialization
+		{ drush runserver "$DRUPAL_TI_WEBSERVER_URL:$DRUPAL_TI_WEBSERVER_PORT" } &
+	fi
+
+	# Wait until drush server has been started.
+	drupal_ti_wait_for_service_port "$DRUPAL_TI_WEBSERVER_PORT"
+	touch "$TRAVIS_BUILD_DIR/../drupal_ti-drush-server-running"
+}
+
 export DRUPAL_TI_DRUSH_VERSION="drush/drush:8.1.*"
 export DRUPAL_TI_SIMPLETEST_FILE="core/scripts/run-tests.sh"
 export DRUPAL_TI_DRUPAL_BASE="$TRAVIS_BUILD_DIR/../thunder-2"
